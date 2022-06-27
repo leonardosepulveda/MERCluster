@@ -27,7 +27,7 @@ def parse_args():
 	parser.add_argument('-trackIterations', default = True, type = bool, help = 'whether to track intermediate clustering results')
 	parser.add_argument('-clusteringAlgorithm', default = 'louvain', type = str, help = 'algorithm to use for modularity optimization, louvain or leiden')
 	parser.add_argument('-fileNameIteration', default = 'None', type = str, help = 'variable to allow appending numbers to file names for bootstrapping iterations')
-	parser.add_argument('-processingRecipe', default = 'False', type = str, help = 'flag to designate type of pipeline to use. Options are: merfish, scrnaseq, harmony and custom. data as coming from a MERFISH experiment, if you set this flag I assume you are giving an h5ad object constructed using area-normalized, logged data')
+	parser.add_argument('-processingRecipe', default = 'False', type = str, help = 'flag to designate type of pipeline to use. Options are: merfish, scrnaseq and none')
 	
 	args = parser.parse_args()
 
@@ -69,7 +69,8 @@ def cluster():
 		ex1.selectVariableGenes(preselectedGenesFile = args.preselectedGenesFile, dispersionMin = args.dispersionMinMaxThreshold[0], dispersionMax = args.dispersionMinMaxThreshold[1], dispersionThreshold = args.dispersionMinMaxThreshold[2])
 		ex1.processData(regressOut=args.regressOut)
 
-	elif processingRecipe == 'CUSTOM'
+	elif processingRecipe == 'NONE':
+		print('No preprocessing chosen, data is assumed filtered, logged and then scaled.')
 		
 	if args.usePCA:
 		ex1.selectPCs()
