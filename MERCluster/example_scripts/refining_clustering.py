@@ -3,7 +3,7 @@ import pandas as pd
 import seaborn as sns
 import os
 import matplotlib as mpl
-import scanpy.api as sc
+import scanpy as sc
 import datetime
 from sklearn import preprocessing 
 import sys

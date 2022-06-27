@@ -4,7 +4,7 @@ from os.path import isfile, join
 import sys
 import numpy as np
 import pandas as pd
-import scanpy.api as sc
+import scanpy as sc
 import datetime
 import re
 from collections import defaultdict

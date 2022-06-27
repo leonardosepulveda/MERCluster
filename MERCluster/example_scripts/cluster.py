@@ -42,7 +42,7 @@ def cluster():
 		ex1 = experiment.Experiment(args.dataFile, args.outputLocation)		
 
 	if merfish:
-		import scanpy.api as sc
+		import scanpy as sc
 
 		if args.pathToCellTypes:
 			ex1.cutToCellList(args.pathToCellTypes, args.pathToCellLabels, args.cellType, args.restriction)

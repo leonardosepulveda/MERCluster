@@ -1,5 +1,5 @@
 import sys
-import scanpy.api as sc
+import scanpy as sc
 import pandas as pd
 from MERCluster.utils import scanpy_helpers
 import numpy as np
@@ -223,7 +223,7 @@ class Experiment:
 				os.makedirs(pathToFullOutput)
 
 		adjacency = self.dataset.uns['neighbors']['connectivities']
-		g = sc.utils.get_igraph_from_adjacency(adjacency, directed=False)
+		g = sc._utils.get_igraph_from_adjacency(adjacency, directed=False)
 
 		if clusteringAlgorithm == 'louvain':
 			import louvain as clAlgo
