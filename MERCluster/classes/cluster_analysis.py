@@ -167,6 +167,8 @@ class ClusterAnalysis:
 					ax.set_xlim(left = 0, right = 1)
 					f.savefig(str(self.outputDir)+'selected_stability_analysis_type_{}_geneset_{}.png'.format(cellType,geneSet),bbox_inches = 'tight')
 
+		return results
+
 
 	def identifyCellTypes(self, experiment, geneIdentityFile = 'None', cutUnstable = False, plot = True):	
 		# The order of cell types in the geneIdentityFile determines the hierarchy for breaking ties if a cell is enriched
