@@ -28,7 +28,7 @@ def parse_args():
 	parser.add_argument('-clusteringAlgorithm', default = 'louvain', type = str, help = 'algorithm to use for modularity optimization, louvain or leiden')
 	parser.add_argument('-fileNameIteration', default = 'None', type = str, help = 'variable to allow appending numbers to file names for bootstrapping iterations')
 	parser.add_argument('-processingRecipe', default = 'False', type = str, help = 'flag to designate type of pipeline to use. Options are: merfish, scrnaseq, harmony and custom. data as coming from a MERFISH experiment, if you set this flag I assume you are giving an h5ad object constructed using area-normalized, logged data')
-	# parser.add_argument('-merfish', default = 'False', type = str, help = 'flag to designate data as coming from a MERFISH experiment, if you set this flag I assume you are giving an h5ad object constructed using area-normalized, logged data')
+	
 	args = parser.parse_args()
 
 	return args
@@ -36,13 +36,16 @@ def parse_args():
 def cluster():
 	args = parse_args()
 
-	merfish = args.merfish.upper() == 'TRUE'
+	processingRecipe = args.processingRecipe.upper() == 'TRUE'
 	if args.cellType:
 		ex1 = experiment.Experiment(args.dataFile, args.outputLocation, cellType = args.cellType)
 	else:
 		ex1 = experiment.Experiment(args.dataFile, args.outputLocation)		
 
-	if merfish:
+	if processingRecipe == 'MERFISH':
+
+		#I assume you are giving an h5ad object constructed using area-normalized, logged data
+
 		import scanpy as sc
 
 		if args.pathToCellTypes:
@@ -54,7 +57,7 @@ def cluster():
 		sc.pp.scale(ex1.dataset, max_value= 4)
 
 
-	else:
+	elif processingRecipe == 'SCRNASEQ':
 		ex1.filter(verbose = args.verbose, byBatch = args.byBatch, countsPercentileCutoffs = list(args.countsPercentileCutoffs),genesPercentileCutoffs = list(args.genesPercentileCutoffs), mitoPercentileMax = args.mitoPercentileMax, geneMin = args.geneMin)
 
 		if args.pathToCellTypes:
@@ -65,6 +68,8 @@ def cluster():
 
 		ex1.selectVariableGenes(preselectedGenesFile = args.preselectedGenesFile, dispersionMin = args.dispersionMinMaxThreshold[0], dispersionMax = args.dispersionMinMaxThreshold[1], dispersionThreshold = args.dispersionMinMaxThreshold[2])
 		ex1.processData(regressOut=args.regressOut)
+
+	elif processingRecipe == 'CUSTOM'
 		
 	if args.usePCA:
 		ex1.selectPCs()
