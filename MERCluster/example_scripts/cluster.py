@@ -76,10 +76,17 @@ def cluster():
 
 	else:
 		print('No preprocessing chosen, data is assumed filtered, logged and then scaled.')
+
+		if args.pathToCellTypes:
+			ex1.cutToCellList(args.pathToCellTypes, args.pathToCellLabels, args.cellType, args.restriction)
+
+		if args.bootstrapFrac < 1.0:
+			ex1.bootstrapCells(args.fileNameIteration, frac = args.bootstrapFrac)
 		
 	if args.usePCA:
 		ex1.selectPCs()
 		if useHarmonyPCA:
+			print('Use harmony')
 			ex1.dataset.obsm['X_pca'] = ex1.dataset.obsm['X_pca_harmony']
 
 	ex1.computeNeighbors(kValue=args.kValue, usePCA=args.usePCA)
