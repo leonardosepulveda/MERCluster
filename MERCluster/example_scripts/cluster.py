@@ -28,10 +28,8 @@ def parse_args():
 	parser.add_argument('-trackIterations', default = True, type = bool, help = 'whether to track intermediate clustering results')
 	parser.add_argument('-clusteringAlgorithm', default = 'louvain', type = str, help = 'algorithm to use for modularity optimization, louvain or leiden')
 	parser.add_argument('-fileNameIteration', default = 'None', type = str, help = 'variable to allow appending numbers to file names for bootstrapping iterations')
-	parser.add_argument('-preprocessing', default = 'True', type = str, help = 'if preprocessing will be run in the dataset. if true, then preprocessing will be done according to the -merfish option. if false, the user needs to provide an already preprocessed dataset')
+	parser.add_argument('-preprocessing', default = True, type = str, help = 'if preprocessing will be run in the dataset. if true, then preprocessing will be done according to the -merfish option. if false, the user needs to provide an already preprocessed dataset')
 	parser.add_argument('-merfish', default = 'False', type = str, help = 'flag to designate data as coming from a MERFISH experiment, if you set this flag I assume you are giving an h5ad object constructed using area-normalized, logged data')
-	
-	
 	args = parser.parse_args()
 
 	return args
