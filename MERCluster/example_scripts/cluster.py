@@ -40,40 +40,41 @@ def cluster():
 	args = parse_args()
 
 	merfish = args.merfish.upper() == 'TRUE'
-	processingRecipe = args.processingRecipe.upper()
+	preprocessing = args.preprocessing.upper() == 'TRUE'
 	if args.cellType:
 		ex1 = experiment.Experiment(args.dataFile, args.outputLocation, cellType = args.cellType)
 	else:
 		ex1 = experiment.Experiment(args.dataFile, args.outputLocation)		
 
-	if processingRecipe == 'MERFISH' or merfish:
+	if preprocessing:
 
-		#I assume you are giving an h5ad object constructed using area-normalized, logged data
+		if merfish:
 
-		import scanpy as sc
+			#I assume you are giving an h5ad object constructed using area-normalized, logged data
 
-		if args.pathToCellTypes:
-			ex1.cutToCellList(args.pathToCellTypes, args.pathToCellLabels, args.cellType, args.restriction)
+			import scanpy as sc
 
-		if args.bootstrapFrac < 1.0:
-			ex1.bootstrapCells(args.fileNameIteration, frac = args.bootstrapFrac)
+			if args.pathToCellTypes:
+				ex1.cutToCellList(args.pathToCellTypes, args.pathToCellLabels, args.cellType, args.restriction)
 
-		sc.pp.scale(ex1.dataset, max_value= 4)
+			if args.bootstrapFrac < 1.0:
+				ex1.bootstrapCells(args.fileNameIteration, frac = args.bootstrapFrac)
 
+			sc.pp.scale(ex1.dataset, max_value= 4)
+		else:
 
-	elif processingRecipe == 'SCRNASEQ' or not merfish:
-		ex1.filter(verbose = args.verbose, byBatch = args.byBatch, countsPercentileCutoffs = list(args.countsPercentileCutoffs),genesPercentileCutoffs = list(args.genesPercentileCutoffs), mitoPercentileMax = args.mitoPercentileMax, geneMin = args.geneMin)
+			ex1.filter(verbose = args.verbose, byBatch = args.byBatch, countsPercentileCutoffs = list(args.countsPercentileCutoffs),genesPercentileCutoffs = list(args.genesPercentileCutoffs), mitoPercentileMax = args.mitoPercentileMax, geneMin = args.geneMin)
 
-		if args.pathToCellTypes:
-			ex1.cutToCellList(args.pathToCellTypes, args.pathToCellLabels, args.cellType, args.restriction)
+			if args.pathToCellTypes:
+				ex1.cutToCellList(args.pathToCellTypes, args.pathToCellLabels, args.cellType, args.restriction)
 
-		if args.bootstrapFrac < 1.0:
-			ex1.bootstrapCells(args.fileNameIteration, frac = args.bootstrapFrac)
+			if args.bootstrapFrac < 1.0:
+				ex1.bootstrapCells(args.fileNameIteration, frac = args.bootstrapFrac)
 
-		ex1.selectVariableGenes(preselectedGenesFile = args.preselectedGenesFile, dispersionMin = args.dispersionMinMaxThreshold[0], dispersionMax = args.dispersionMinMaxThreshold[1], dispersionThreshold = args.dispersionMinMaxThreshold[2])
-		ex1.processData(regressOut=args.regressOut)
+			ex1.selectVariableGenes(preselectedGenesFile = args.preselectedGenesFile, dispersionMin = args.dispersionMinMaxThreshold[0], dispersionMax = args.dispersionMinMaxThreshold[1], dispersionThreshold = args.dispersionMinMaxThreshold[2])
+			ex1.processData(regressOut=args.regressOut)
 
-	elif processingRecipe == 'NONE':
+	else:
 		print('No preprocessing chosen, data is assumed filtered, logged and then scaled.')
 		
 	if args.usePCA:
