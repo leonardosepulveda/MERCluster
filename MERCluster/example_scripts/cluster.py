@@ -28,7 +28,8 @@ def parse_args():
 	parser.add_argument('-trackIterations', default = True, type = bool, help = 'whether to track intermediate clustering results')
 	parser.add_argument('-clusteringAlgorithm', default = 'louvain', type = str, help = 'algorithm to use for modularity optimization, louvain or leiden')
 	parser.add_argument('-fileNameIteration', default = 'None', type = str, help = 'variable to allow appending numbers to file names for bootstrapping iterations')
-	parser.add_argument('-processingRecipe', default = 'None', type = str, help = 'flag to designate type of pipeline to use. Options are: merfish, scrnaseq and none')
+	parser.add_argument('-preprocessing', default = 'True', type = str, help = 'if preprocessing will be run in the dataset. if true, then preprocessing will be done according to the -merfish option. if false, the user needs to provide an already preprocessed dataset')
+	parser.add_argument('-merfish', default = 'False', type = str, help = 'flag to designate data as coming from a MERFISH experiment, if you set this flag I assume you are giving an h5ad object constructed using area-normalized, logged data')
 	
 	
 	args = parser.parse_args()
@@ -38,13 +39,14 @@ def parse_args():
 def cluster():
 	args = parse_args()
 
-	processingRecipe = args.processingRecipe.upper() == 'TRUE'
+	merfish = args.merfish.upper() == 'TRUE'
+	processingRecipe = args.processingRecipe.upper()
 	if args.cellType:
 		ex1 = experiment.Experiment(args.dataFile, args.outputLocation, cellType = args.cellType)
 	else:
 		ex1 = experiment.Experiment(args.dataFile, args.outputLocation)		
 
-	if processingRecipe == 'MERFISH':
+	if processingRecipe == 'MERFISH' or merfish:
 
 		#I assume you are giving an h5ad object constructed using area-normalized, logged data
 
@@ -59,7 +61,7 @@ def cluster():
 		sc.pp.scale(ex1.dataset, max_value= 4)
 
 
-	elif processingRecipe == 'SCRNASEQ':
+	elif processingRecipe == 'SCRNASEQ' or not merfish:
 		ex1.filter(verbose = args.verbose, byBatch = args.byBatch, countsPercentileCutoffs = list(args.countsPercentileCutoffs),genesPercentileCutoffs = list(args.genesPercentileCutoffs), mitoPercentileMax = args.mitoPercentileMax, geneMin = args.geneMin)
 
 		if args.pathToCellTypes:
