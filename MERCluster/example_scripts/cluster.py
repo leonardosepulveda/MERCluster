@@ -39,6 +39,8 @@ def cluster():
 
 	merfish = args.merfish.upper() == 'TRUE'
 	preprocessing = args.preprocessing.upper() == 'TRUE'
+	useHarmonyPCA = args.useHarmonyPCA.upper() == 'TRUE'
+
 	if args.cellType:
 		ex1 = experiment.Experiment(args.dataFile, args.outputLocation, cellType = args.cellType)
 	else:
@@ -77,7 +79,7 @@ def cluster():
 		
 	if args.usePCA:
 		ex1.selectPCs()
-		if args.useHarmonyPCA:
+		if useHarmonyPCA:
 			ex1.dataset.obsm['X_pca'] = ex1.dataset.obsm['X_pca_harmony']
 
 	ex1.computeNeighbors(kValue=args.kValue, usePCA=args.usePCA)
