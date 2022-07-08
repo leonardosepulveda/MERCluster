@@ -30,6 +30,7 @@ def parse_args():
 	parser.add_argument('-fileNameIteration', default = 'None', type = str, help = 'variable to allow appending numbers to file names for bootstrapping iterations')
 	parser.add_argument('-preprocessing', default = True, type = str, help = 'if preprocessing will be run in the dataset. if true, then preprocessing will be done according to the -merfish option. if false, the user needs to provide an already preprocessed dataset')
 	parser.add_argument('-merfish', default = 'False', type = str, help = 'flag to designate data as coming from a MERFISH experiment, if you set this flag I assume you are giving an h5ad object constructed using area-normalized, logged data')
+	parser.add_argument('-save', default = 'False', type = str, help = 'Whether to save the anndata results from clustering.')
 	args = parser.parse_args()
 
 	return args
@@ -38,15 +39,19 @@ def cluster():
 	args = parse_args()
 
 	merfish = args.merfish.upper() == 'TRUE'
-	preprocessing = args.preprocessing.upper() == 'TRUE'
+	# preprocessing = args.preprocessing.upper() == 'TRUE'
 	useHarmonyPCA = args.useHarmonyPCA.upper() == 'TRUE'
+	save = args.save.upper() == 'TRUE'
 
 	if args.cellType:
 		ex1 = experiment.Experiment(args.dataFile, args.outputLocation, cellType = args.cellType)
 	else:
 		ex1 = experiment.Experiment(args.dataFile, args.outputLocation)		
 
-	if preprocessing:
+	print('input dataset:\n')
+	print(ex1.dataset)
+
+	if args.preprocessing.upper() == 'NONE'
 
 		if merfish:
 
@@ -74,8 +79,22 @@ def cluster():
 			ex1.selectVariableGenes(preselectedGenesFile = args.preselectedGenesFile, dispersionMin = args.dispersionMinMaxThreshold[0], dispersionMax = args.dispersionMinMaxThreshold[1], dispersionThreshold = args.dispersionMinMaxThreshold[2])
 			ex1.processData(regressOut=args.regressOut)
 
-	else:
+	elif args.preprocessing.upper() == 'LOG'
+
+			import scanpy as sc
+
+			if args.pathToCellTypes:
+				ex1.cutToCellList(args.pathToCellTypes, args.pathToCellLabels, args.cellType, args.restriction)
+
+			if args.bootstrapFrac < 1.0:
+				ex1.bootstrapCells(args.fileNameIteration, frac = args.bootstrapFrac)
+
+			sc.pp.scale(ex1.dataset, max_value=args.maxValue)
+
+	elif args.preprocessing.upper() == 'SCALED'
 		print('No preprocessing chosen, data is assumed filtered, logged and then scaled.')
+	else:
+		print(f'preprocessing option \"{args.preprocessing}\" not allowed')
 
 		if args.pathToCellTypes:
 			ex1.cutToCellList(args.pathToCellTypes, args.pathToCellLabels, args.cellType, args.restriction)
@@ -91,6 +110,9 @@ def cluster():
 
 	ex1.computeNeighbors(kValue=args.kValue, usePCA=args.usePCA)
 	ex1.cluster(resolution=args.resolution, clusterMin=args.clusterMin, trackIterations=args.trackIterations, clusteringAlgorithm=args.clusteringAlgorithm, preselectedGenesFile = args.preselectedGenesFile)
+
+	if args.save:
+		ex1.save()
 
 
 if __name__ == '__main__':
