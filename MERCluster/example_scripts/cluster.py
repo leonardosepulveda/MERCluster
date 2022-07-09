@@ -22,6 +22,7 @@ def parse_args():
 	parser.add_argument('-usePCA', default = True, type = str, help = 'whether to perform PCA prior to clustering')
 	parser.add_argument('-useHarmonyPCA', default = False, type = str, help = 'to replace the calculated PCAs for the ones precalculated using harmony')
 	parser.add_argument('-kValue', default = 12, type = int, help = 'k value to use for constructing the nearest neighbor graph')
+	parser.add_argument('-maxValue', default = 4, type = int, help = 'maximum zscore for gene expression')
 	parser.add_argument('-resolution', default = [1.0], nargs = '+', type = float, help = 'resolution to use for calculating modularity')
 	parser.add_argument('-clusterMin', default = 10, type = str, help = 'minimum number of cells that must be present in a cluster for it to be included in the final output')
 	parser.add_argument('-verbose', default = True, type = bool, help = 'whether to print messages during processing')
@@ -30,7 +31,7 @@ def parse_args():
 	parser.add_argument('-fileNameIteration', default = 'None', type = str, help = 'variable to allow appending numbers to file names for bootstrapping iterations')
 	parser.add_argument('-preprocessing', default = True, type = str, help = 'if preprocessing will be run in the dataset. if true, then preprocessing will be done according to the -merfish option. if false, the user needs to provide an already preprocessed dataset')
 	parser.add_argument('-merfish', default = 'False', type = str, help = 'flag to designate data as coming from a MERFISH experiment, if you set this flag I assume you are giving an h5ad object constructed using area-normalized, logged data')
-	parser.add_argument('-save', default = 'False', type = str, help = 'Whether to save the anndata results from clustering.')
+	parser.add_argument('-saveAnndata', default = 'False', type = str, help = 'Whether to save the anndata results from clustering.')
 	args = parser.parse_args()
 
 	return args
@@ -65,7 +66,7 @@ def cluster():
 			if args.bootstrapFrac < 1.0:
 				ex1.bootstrapCells(args.fileNameIteration, frac = args.bootstrapFrac)
 
-			sc.pp.scale(ex1.dataset, max_value= 4)
+			sc.pp.scale(ex1.dataset, max_value=args.maxValue)
 		else:
 
 			ex1.filter(verbose = args.verbose, byBatch = args.byBatch, countsPercentileCutoffs = list(args.countsPercentileCutoffs),genesPercentileCutoffs = list(args.genesPercentileCutoffs), mitoPercentileMax = args.mitoPercentileMax, geneMin = args.geneMin)
@@ -111,9 +112,8 @@ def cluster():
 	ex1.computeNeighbors(kValue=args.kValue, usePCA=args.usePCA)
 	ex1.cluster(resolution=args.resolution, clusterMin=args.clusterMin, trackIterations=args.trackIterations, clusteringAlgorithm=args.clusteringAlgorithm, preselectedGenesFile = args.preselectedGenesFile)
 
-	if args.save:
-		ex1.save()
-
+	if args.saveAnndata:
+		ex1.save(outputFile = f'adata_kValue_{args.kValue}_maxValue_{args.maxValueValue}_resolution_{args.resolution}.h5ad')\
 
 if __name__ == '__main__':
 	cluster()
