@@ -11,7 +11,7 @@ def parse_args():
 	parser.add_argument('outputLocation', type = str, help = 'directory to write results')
 
 	# Options relevant for filtering 
-	parser.add_argument('-useFilter', default = False, type = bool, help = 'Perform filtering? is True, needs to specify -byBatch, -countsPercentileCutoffs, -genesPercentileCutoffs, -mitoPercentileMax and -geneMin' )
+	parser.add_argument('-useFilter', default = 'False', type = str, help = 'Perform filtering? is True, needs to specify -byBatch, -countsPercentileCutoffs, -genesPercentileCutoffs, -mitoPercentileMax and -geneMin' )
 	parser.add_argument('-byBatch', default = 'False', type = str, help = 'if the batch variable is present in the AnnData object you can set this to true to apply percentile based filters to each dataset independently' )
 	parser.add_argument('-countsPercentileCutoffs', nargs = 2, default = [0.0, 1.0], type = float, metavar = ('min counts percentile','max counts percentile'), help = 'cutoff values to remove cells below/above a certain minimum or maximum number of counts, represented as a percentile, enter minimum first then maximum')
 	parser.add_argument('-genesPercentileCutoffs', nargs = 2, default = [0.0, 1.0], type = float, metavar = ('min genes percentile','max genes percentile'), help = 'cutoff values to remove cells below/above a certain minimum or maximum number of genes, represented as a percentile, enter minimum first then maximum')
@@ -19,11 +19,12 @@ def parse_args():
 	parser.add_argument('-geneMin', default = 10, type = int, help = 'minimum number of cells a gene must be present in for it to be included as a potential highly variable gene')
 
 	# Options for select variableGenes
-	parser.add_argument('-selectVariableGenes', default = False, type = bool, help = 'Select variable genes? if True, needs to specify -preselectedGenesFile and -dispersionMinMaxThreshold')
+	parser.add_argument('-selectVariableGenes', default = 'False', type = str, help = 'Select variable genes? if True, needs to specify -preselectedGenesFile and -dispersionMinMaxThreshold')
 	parser.add_argument('-preselectedGenesFile', default = 'highVar', type = str, help = 'path to a file containing a list of genes to use for PCA/clustering, expects genes to be entered as one per line with nothing else, set to highVar to select highly variable genes based on dispersion')
 	parser.add_argument('-dispersionMinMaxThreshold', nargs = 3, default = [0.025,4.0,0.5], type = float, metavar = ('min dispersion','max dispersion','dispersion threshold'), help = 'minimum, maximum and cutoff value for selecting highly dispersed genes')
 	
 	# Options for regression of counts and/or percent of mitochondrial genes
+	parser.add_argument('-useRegress', default = 'False', type = str, help = 'Use regression of variables.')
 	parser.add_argument('-regressOut', nargs = '+', default = ['n_counts','percent_mito'], type = str, metavar = 'first variable to regress out', help = 'variables to regress out from counts matrix')
 
 
@@ -38,14 +39,14 @@ def parse_args():
 	parser.add_argument('-bootstrapFrac', default = 1.0, type = float, help = 'fraction of cells to keep during bootstrapping')
 	
 	# Options for data transformations
-	parser.add_argument('-log', default = True, type = bool, help = 'Apply log transform?')
-	parser.add_argument('-scale', default = True, type = bool, help = 'Apply z-score scaling? needs to specify -maxValue')
+	parser.add_argument('-log', default = 'True', type = str, help = 'Apply log transform?')
+	parser.add_argument('-scale', default = 'True', type = str, help = 'Apply z-score scaling? needs to specify -maxValue')
 	parser.add_argument('-maxValue', default = 4, type = int, help = 'maximum zscore for gene expression')
 
 	# Options for calculating Neighbor graph
 	parser.add_argument('-kValue', default = 12, type = int, help = 'k value to use for constructing the nearest neighbor graph')
-	parser.add_argument('-usePCA', default = True, type = bool, help = 'Calculate PCA?')
-	parser.add_argument('-useHarmonyIntegration', default = False, type = bool, help = 'Integrate samples using harmony')
+	parser.add_argument('-usePCA', default = 'True', type = str, help = 'Calculate PCA?')
+	parser.add_argument('-useHarmonyIntegration', default = 'False', type = str, help = 'Integrate samples using harmony')
 	
 
    # Options for clustering
@@ -55,8 +56,7 @@ def parse_args():
 	parser.add_argument('-clusteringAlgorithm', default = 'louvain', type = str, help = 'algorithm to use for modularity optimization, louvain or leiden')
 	
 	# saving and mesage options
-
-	parser.add_argument('-saveAnndata', default = False, type = bool, help = 'Whether to save the anndata results from clustering.')
+	parser.add_argument('-saveAnndata', default = 'False', type = str, help = 'Whether to save the anndata results from clustering.')
 	parser.add_argument('-verbose', default = True, type = bool, help = 'whether to print messages during processing')
 	
 	
@@ -72,8 +72,9 @@ def cluster():
 	else:
 		ex1 = experiment.Experiment(args.dataFile, args.outputLocation)		
 
-	
-	if args.useFilter:
+
+	useFilter = args.useFilter.upper() == 'TRUE'
+	if useFilter:
 		ex1.filter(verbose = args.verbose, byBatch = args.byBatch, countsPercentileCutoffs = list(args.countsPercentileCutoffs),genesPercentileCutoffs = list(args.genesPercentileCutoffs), mitoPercentileMax = args.mitoPercentileMax, geneMin = args.geneMin)
 
 	if args.pathToCellTypes:
@@ -82,30 +83,37 @@ def cluster():
 	if args.bootstrapFrac < 1.0:
 		ex1.bootstrapCells(args.fileNameIteration, frac = args.bootstrapFrac)
 
-	if args.regressOut:
-		ex1.processData(regressOut=args.regressOut)
-
-	if args.selectVariableGenes:
+	selectVariableGenes = args.selectVariableGenes.upper() == 'TRUE'
+	if selectVariableGenes:
 		ex1.selectVariableGenes(preselectedGenesFile = args.preselectedGenesFile, dispersionMin = args.dispersionMinMaxThreshold[0], dispersionMax = args.dispersionMinMaxThreshold[1], dispersionThreshold = args.dispersionMinMaxThreshold[2])
 
-	if args.log:
-		sc.pp.log(ex1.dataset)
+	log = args.log.upper() == 'TRUE'
+	if log:
+		sc.pp.log1p(ex1.dataset)
 
-	if args.scale:
+	useRegress = args.useRegress.upper() == 'TRUE'
+	if useRegress:
+		ex1.processData(regressOut=args.regressOut)
+
+	scale = args.scale.upper() == 'TRUE'
+	if scale:
 		sc.pp.scale(ex1.dataset, max_value=args.maxValue)
 
-	if args.usePCA:
+	usePCA = args.usePCA.upper() == 'TRUE'
+	if usePCA:
 		ex1.selectPCs()
 
-	if args.useHarmonyIntegrate:
+	useHarmonyIntegration = args.useHarmonyIntegration.upper() == 'TRUE'
+	if useHarmonyIntegration:
 		sce.pp.harmony_integrate(ex1.dataset, 'dataset', basis='X_pca', adjusted_basis='X_pca_harmony',max_iter_harmony = 20)
 		ex1.dataset.obsm['X_pca'] = ex1.dataset.obsm['X_pca_harmony']
 
-	ex1.computeNeighbors(kValue=args.kValue, usePCA=args.usePCA)
+	ex1.computeNeighbors(kValue=args.kValue, usePCA=usePCA)
 	
 	ex1.cluster(resolution=args.resolution, clusterMin=args.clusterMin, trackIterations=args.trackIterations, clusteringAlgorithm=args.clusteringAlgorithm, preselectedGenesFile = args.preselectedGenesFile)
 
-	if args.saveAnndata:
+	saveAnndata = args.saveAnndata.upper() == 'TRUE'
+	if saveAnndata:
 		ex1.save(outputFile = f'adata_kValue_{args.kValue}_maxValue_{args.maxValueValue}_resolution_{args.resolution}.h5ad')
 
 if __name__ == '__main__':
